@@ -1,7 +1,4 @@
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -62,9 +59,23 @@ public class Test {
         t.print("addd");
         t.print("adb",1234,11.1);
         int[] n = {1,2,3,4,5};
-        t.printt(n);
+        //t.printt(n);
         char[] cc = {'a','b','c','d','e'};
-        t.printt(cc);
+        //t.printt(cc);
+
+        String s = "sbcdef";
+        System.out.print(s.substring(0,6));
+        Map<String, Integer> m = new HashMap<>();
+        m.put("a",0);
+        m.put("b",1);
+        System.out.println(m.get("a").intValue());
+        m.put("a",1);
+        System.out.println(m.get("a").intValue());
+        int i = 2;
+        int j = i++;
+        System.out.print(j);
+        System.out.print(i);
+
 
     }
 }

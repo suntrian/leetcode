@@ -1,4 +1,6 @@
+import com.sun.org.apache.regexp.internal.RE;
 import org.omg.PortableInterceptor.INACTIVE;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -22,6 +24,14 @@ class TreeNode {
         val = x;
     }
 }
+
+class Point {
+    int x;
+    int y;
+    Point() { x = 0; y = 0; }
+    Point(int a, int b) { x = a; y = b; }
+}
+
 
 //355
 /*Design a simplified version of Twitter where users can post tweets, follow/unfollow another user and is able to see the 10 most recent tweets in the user's news feed. Your design should support the following methods:
@@ -89,6 +99,20 @@ class Twitter{
 
 
 public class Solution implements Callback{
+
+    public void  swap(int[] str, int a, int b){
+        if(a<0 || b<0 || a >= str.length || b>=str.length) return;
+        int c = str[a];
+        str[a] = str[b];
+        str[b] = c;
+    }
+    public void  swap(char[] str, int a, int b){
+        if(a<0 || b<0 || a >= str.length || b>=str.length) return;
+        char c = str[a];
+        str[a] = str[b];
+        str[b] = c;
+    }
+
 
     public Solution(){
 
@@ -733,13 +757,14 @@ public class Solution implements Callback{
      */
     private int[] nums;
     private Random random;
-    public void setNums(int[] nums){
-        this.nums = nums;
-    }
     public Solution(int[] nums){
         this.nums = nums;
         this.random = new Random();
     }
+    public void setNums(int[] nums){
+        this.nums = nums;
+    }
+    public void setRandom(){ this.random = new Random(); }
     public int[] reset(){
         return this.nums;
     }
@@ -748,7 +773,7 @@ public class Solution implements Callback{
         for(int i = 0; i < ret.length; i++) ret[i] = this.nums[i];
         for(int i = 0; i < ret.length; i++){
             int t = random.nextInt(ret.length);
-            //swap(ret,i,t);
+            swap(ret,i,t);
         }
         return ret;
     }
@@ -770,6 +795,7 @@ public class Solution implements Callback{
     public void shuffle_testcase(){
         int[] nums = {1,2,3,4,5,6,7,8,9};
         setNums(nums);
+        setRandom();
         for(int n:shuffle()) System.out.print(n);
     }
 
@@ -788,27 +814,437 @@ public class Solution implements Callback{
         Note: Given n will be between 1 and 9 inclusive.
      */
     public String getPermutation(int n, int k) {
-        char[] ori = new char[n];
-        for(int i = 0; i < n; i++) ori[i] = (char)(i+1);
-        for(int i = 0; i < n; i++){
-            int u = k/(n-i);
-            int r = k%(n-i);
-            //swap(ori, u, r);
+        int pos = 0;
+        List<Integer> numbers = new ArrayList<>();
+        int[] factorial = new int[n+1];
+        StringBuilder sb = new StringBuilder();
+
+        // create an array of factorial lookup
+        int sum = 1;
+        factorial[0] = 1;
+        for(int i=1; i<=n; i++){
+            sum *= i;
+            factorial[i] = sum;
         }
-        return "";
-    }
-    public  <T> void  swap(T[] str, int a, int b){
-        if(a<0 || b<0 || a >= str.length || b>=str.length) return;
-        T c = str[a];
-        str[a] = str[b];
-        str[b] = c;
+        // factorial[] = {1, 1, 2, 6, 24, ... n!}
+
+        // create a list of numbers to get indices
+        for(int i=1; i<=n; i++){
+            numbers.add(i);
+        }
+        // numbers = {1, 2, 3, 4}
+
+        k--;
+
+        for(int i = 1; i <= n; i++){
+            int index = k/factorial[n-i];
+            sb.append(String.valueOf(numbers.get(index)));
+            numbers.remove(index);
+            k-=index*factorial[n-i];
+        }
+
+        return String.valueOf(sb);
     }
 
+    public String getPermutation2(int n, int k){
+        List<Integer> num = new LinkedList<>();
+        for(int i = 1; i <=n; i++) num.add(i);
+        int[] factorial = new int[n];
+        factorial[0] = 1;
+        for(int i = 1; i < n; i++) factorial[i] = i*factorial[i-1];
+        k = k-1;
+        StringBuilder sb = new StringBuilder();
+        for(int i = n; i > 0; i--){
+            int ind = k/factorial[i-1];
+            k = k%factorial[i-1];
+            sb.append(num.get(ind));
+            num.remove(ind);
+        }
+        return sb.toString();
+    }
+
+    public void getPermutation_testcase(){
+        int n = 1, k = 1;
+        System.out.println(getPermutation2(n,k));
+    }
+
+    //14. Longest Common Prefix
+    /*
+        Write a function to find the longest common prefix string amongst an array of strings.
+     */
+    public String longestCommonPrefix(String[] strs) {
+        if(strs.length == 0) return "" ;
+        String pre = strs[0];
+        for(int i=1; i<strs.length ;i++){
+            while (!strs[i].startsWith(pre)){
+                pre = pre.substring(0,pre.length()-1);
+
+            }
+        }
+        return pre;
+    }
+
+    //149. Max Points on a Line
+    /*
+    Given n points on a 2D plane, find the maximum number of points that lie on the same straight line.
+     */
+    public int maxPoints(Point[] points) {
+        if(points.length<=2) return points.length;
+        int result = 0;
+        for(int i =0; i<points.length-1; i++){
+            Map<Integer,Map<Integer,Integer>> slope_count = new HashMap<>();
+            int max = 0,inc = 0;
+            for(int j =i+1;j<points.length; j++){
+                double slope = 0;
+                int deltay = points[j].y-points[i].y;
+                int deltax = points[j].x-points[i].x;
+                if(deltay==0 && deltax == 0) {
+                    inc+=1;
+                    continue;
+                }
+                int gcd = generateGCD(deltax,deltay);
+                if(gcd != 0){
+                    deltax /= gcd;
+                    deltay /= gcd;
+                }
+                int count = 1;
+                if(slope_count.containsKey(deltax)){
+                    if(slope_count.get(deltax).containsKey(deltay)){
+                        count = slope_count.get(deltax).get(deltay)+1;
+                        slope_count.get(deltax).put(deltay, count);
+                    }else {
+                        slope_count.get(deltax).put(deltay, 1);
+                    }
+                }else {
+                    Map<Integer,Integer> m = new HashMap<>();
+                    m.put(deltay,1);
+                    slope_count.put(deltax,m);
+                }
+                max = Math.max(max,count);
+            }
+            result = Math.max(result, max + inc +1);
+        }
+        return result;
+    }
+    private int generateGCD(int a,int b){
+        if (b==0) return a;
+        else return generateGCD(b,a%b);
+    }
+    public void maxPoints_testcase(){
+        Point p1 = new Point(0,0);
+        Point p2 = new Point(94911151,94911150);
+        Point p3 = new Point(94911152,94911151);
+        System.out.println(maxPoints((Point[])Arrays.asList(p1,p2,p3).toArray()));
+    }
+
+    //75. Sort Colors
+    /*Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.
+        Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
+    */
+    public void sortColors(int[] nums) {
+        final int RED = 0, WHITE = 1, BLUE = 2;
+        int frontWhiteStart = -1 , backWhiteStart = nums.length;
+
+        for(int i = 0,j=nums.length-1; i<=j ; ){
+            while ( nums[i] == RED && i<=j) {
+                if( frontWhiteStart>=0) {
+                    nums[frontWhiteStart++] = RED;
+                    nums[i] = WHITE;
+                }
+                i++;
+                if(i>j) return;
+            }
+            while ( nums[j] == BLUE  && i<=j){
+                if( backWhiteStart <nums.length) {
+                    nums[backWhiteStart--] = BLUE;
+                    nums[j] = WHITE;
+                }
+                j--;
+                if(i>j) return;
+            }
+
+
+            if(nums[i] == BLUE && nums[j] == RED){
+                if(frontWhiteStart>=0){
+                    nums[frontWhiteStart++] = RED;
+                    nums[i] = WHITE;
+                }else {
+                    nums[i] = RED;
+                }
+                if(backWhiteStart<nums.length){
+                    nums[backWhiteStart--] = BLUE;
+                    nums[j] = WHITE;
+                }else {
+                    nums[j] = BLUE;
+                }
+                i++;
+                j--;
+                continue;
+            }
+            if(nums[i] == WHITE){
+                if(frontWhiteStart<0) frontWhiteStart = i;
+                i++;
+            }
+            if(nums[j] == WHITE ) {
+                if (backWhiteStart >= nums.length) backWhiteStart = j;
+                j--;
+            }
+        }
+
+    }
+    public void sortColors2(int[] nums){
+        int front = 0, back = nums.length-1, temp = 0;
+        for(int i =0; i<nums.length;i++){
+            while (nums[i] == 2 && i < back) {
+                temp = nums[i];
+                nums[i] = nums[back];
+                nums[back] = temp;
+                back--;
+            }
+            while (nums[i] == 0 && i > front) {
+                temp = nums[i];
+                nums[i] = nums[front];
+                nums[front] = temp;
+                front++;
+                //swap(nums, i, front++);
+            }
+        }
+    }
+    public void sortColors_testcase(){
+        //int[] nums = {0,2,2,1,1,1,2,0,0,2,1,1,0,0,0,2,0};
+        //int[] nums = {1,0};
+        int[] nums = {2};
+        //int[] nums = {1,2,0};
+        //int[] nums = {2,1,1,2,2,1,2,1};
+        //int[] nums = {1,2,2,1,2,2,1,1,2,1,1};
+        sortColors2(nums);
+        for(int n: nums) System.out.print(n);
+    }
+
+    //53. Maximum Subarray
+    /*
+        Find the contiguous subarray within an array (containing at least one number) which has the largest sum.
+        For example, given the array [-2,1,-3,4,-1,2,1,-5,4],
+        the contiguous subarray [4,-1,2,1] has the largest sum = 6.
+        click to show more practice.
+        More practice:
+        If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle
+     */
+    public int maxSubArray(int[] nums) {
+        int maxLeft = nums[0], maxCurrent=nums[0];
+        for(int i = 1; i<nums.length; i++){
+            maxCurrent = Math.max(maxCurrent + nums[i], nums[i]);
+            maxLeft = Math.max(maxCurrent, maxLeft);
+        }
+        return maxLeft;
+    }
+    public int maxSubArray2(int[] nums){
+        int sum = 0, min = 0, rest=nums[0];
+        for(int i = 0; i<nums.length; i++){
+            sum += nums[i];
+            if(sum-min > rest) rest = sum-min;
+            if(sum < min ) min = sum;
+        }
+        return rest;
+    }
+
+    //divide and conquer
+    public int maxSubArray3(int[] nums){
+        return 0;
+    }
+
+    public void maxSubArray_testcase(){
+        int[] nums = {-2,1,-3,4,-1,2,1,-5,4};
+        System.out.println(maxSubArray2(nums));
+    }
+
+    //h-index
+    /*
+        Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute the researcher's h-index.
+        According to the definition of h-index on Wikipedia: "A scientist has index h if h of his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."
+     */
+    public int hIndex(int[] citations) {
+        int n = citations.length;
+        if (n == 0) return 0;
+        int[] count = new int[n+1];
+        for (int i = 0; i < n; i++) {
+            if (citations[i] > n ) {
+                count[n] += 1;
+                continue;
+            }
+            count[citations[i]] += 1;
+        }
+        int sum = 0;
+        for(int i = n; i>=0; i--){
+            sum += count[i];
+            if (sum >= i ) return i;
+        }
+        return 0;
+    }
+
+    public int hIndex2(int[] citations){
+        int length = citations.length;
+        int start = 0;
+        int end = length - 1;
+        int hIndex = 0;
+
+        while (start <= end)
+        {
+            int current = divideByPartition(citations, start, end);
+            if (length - current <= citations[current])
+            {
+                hIndex = length - current;
+                end = current - 1;
+            }
+            else
+                start = current + 1;
+        }
+
+        return hIndex;
+    }
+
+    private int divideByPartition(int[] a, int start, int end)
+    {
+        if (start == end) return end;
+
+        int p = a[end];
+        int head = start;
+        for (int current = start; current < end; current++)
+        {
+            if (a[current] < p)
+            {
+                int temp = a[head];
+                a[head] = a[current];
+                a[current] = temp;
+                head++;
+            }
+        }
+        a[end] = a[head];
+        a[head] = p;
+        return head;
+    }
+
+    public void hIndex_testcase(){
+        int[] citations = {3, 0, 6, 1, 5};
+        //int[] citations = {1};
+        System.out.println(hIndex(citations));
+    }
+
+    //404. Sum of Left Leaves
+    /*
+        Find the sum of all left leaves in a given binary tree.
+     */
+    boolean nowLeft = false;
+    public int sumOfLeftLeaves(TreeNode root) {
+        if (root == null) return 0;
+        int sum = 0;
+        if(root.left != null) {
+            nowLeft = true;
+            sum += sumOfLeftLeaves(root.left);
+        }
+        if(root.right != null) {
+            nowLeft = false;
+            sum += sumOfLeftLeaves(root.right);
+        }
+        if(root.left == null && root.right == null && nowLeft) return root.val;
+        return sum;
+    }
+
+    public void sumOfLeftLeaves_testcase() {
+        TreeNode n1 = new TreeNode(3);
+        TreeNode n2 = new TreeNode(9);
+        TreeNode n3 = new TreeNode(20);
+        TreeNode n4 = new TreeNode(15);
+        TreeNode n5 = new TreeNode(7);
+        TreeNode n6 = new TreeNode(8);
+        n1.left = n2;
+        n1.right = n3;
+        n3.left = n4;
+        n3.right = n5;
+        n4.left = n6;
+        //System.out.println(sumOfLeftLeaves(n1));
+        System.out.println(sumOfLeftLeaves(null));
+    }
+
+    //209. Minimum Size Subarray Sum
+    /*
+        Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray of which the sum ≥ s. If there isn't one, return 0 instead.
+     */
+    public int minSubArrayLen(int s, int[] nums) {
+        if(nums.length == 0) return 0;
+        int min = Integer.MAX_VALUE;
+
+        for(int i = 0; i < nums.length; i++){
+            if(nums[i] >= s) return 1;
+            int sum = nums[i];
+            for(int j = i+1; j< nums.length; j++) {
+                sum += nums[j];
+                if (sum >= s && j-i+1 < min) min = j-i+1 ;
+            }
+        }
+        return min==Integer.MAX_VALUE?0:min;
+    }
+
+    public int minSubArrayLen2(int s, int[] nums) {
+        if(nums.length == 0) return 0;
+        int min = Integer.MAX_VALUE, sum = 0, head = 0, end = 0;
+        while (end < nums.length){
+            sum += nums[end++];
+            while (sum >= s){
+                min = Math.min(min, end-head);
+                sum -= nums[head++];
+            }
+        }
+        return min==Integer.MAX_VALUE?0:min;
+    }
+
+    public void minSubArrayLen_testcase(){
+        int[] nums = {2,3,1,2,4,3};
+        int s = 10;
+        System.out.println(minSubArrayLen(s, nums));
+    }
+
+    //219. Contains Duplicate II
+    /*
+        Given an array of integers and an integer k, find out whether there are two distinct indices i and j in the array such that nums[i] = nums[j] and the absolute difference between i and j is at most k.
+     */
+    public boolean containsNearbyDuplicate(int[] nums, int k) {
+        Set<Integer> set = new HashSet<>();
+        for (int i = 0; i < nums.length; i++){
+            if (i > k) set.remove(nums[i-k-1]);
+            if(!set.add(nums[i])) return true;
+        }
+        return false;
+    }
+
+    public void containNearbyDuplicate_testcase(){
+        //int[] nums = {1,2};
+        //int[] nums = {-1, -1};
+        int[] nums = {1,2,1};
+        int k = 1;
+        System.out.println(containsNearbyDuplicate(nums, k));
+    }
+
+    //101. Symmetric Tree
+    /*
+        Given a binary tree, check whether it is a mirror of itself (ie, symmetric around its center).
+     */
+    public boolean isSymmetric(TreeNode root) {
+        return  false;
+    }
 
     @Override
     public void exec() {
         //myPow_testcase();
-        shuffle_testcase();
+        //shuffle_testcase();
+        //getPermutation_testcase();
+        //maxPoints_testcase();
+        //sortColors_testcase();
+        //maxSubArray_testcase();
+        //hIndex_testcase();
+        //sumOfLeftLeaves_testcase();
+        //minSubArrayLen_testcase();
+        containNearbyDuplicate_testcase();
     }
 
     public static void main(String[] args) {
