@@ -1,10 +1,5 @@
-import com.sun.org.apache.regexp.internal.RE;
-import org.omg.PortableInterceptor.INACTIVE;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
-
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Created by yuanxm on 1/19/17.
@@ -46,8 +41,8 @@ class Twitter{
     private List<List<Integer>> follow;
 
     public Twitter() {
-        twitter = new ArrayList<>();
-        follow = new ArrayList<>();
+        twitter = new ArrayList<List<String>>();
+        follow = new ArrayList<List<Integer>>();
     }
 
     /** Compose a new tweet. */
@@ -815,7 +810,7 @@ public class Solution implements Callback{
      */
     public String getPermutation(int n, int k) {
         int pos = 0;
-        List<Integer> numbers = new ArrayList<>();
+        List<Integer> numbers = new ArrayList<Integer>();
         int[] factorial = new int[n+1];
         StringBuilder sb = new StringBuilder();
 

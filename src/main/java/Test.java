@@ -65,7 +65,7 @@ public class Test {
 
         String s = "sbcdef";
         System.out.print(s.substring(0,6));
-        Map<String, Integer> m = new HashMap<>();
+        Map<String, Integer> m = new HashMap<String, Integer>();
         m.put("a",0);
         m.put("b",1);
         System.out.println(m.get("a").intValue());
