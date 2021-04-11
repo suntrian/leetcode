@@ -1,8 +1,11 @@
 package hundred0;
 
+import util.Unsolved;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Unsolved
 public class _51_NQueens {
 
     /**
