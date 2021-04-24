@@ -44,6 +44,8 @@ import util.Unsolved;
  * s contains only lowercase English letters.
  * p contains only lowercase English letters, '.', and '*'.
  * It is guaranteed for each appearance of the character '*', there will be a previous valid character to match.
+ *
+ * @see _44_WildcardMatching
  */
 @Unsolved
 public class _10_RegularExpressionMatching {
